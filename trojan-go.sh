@@ -174,7 +174,6 @@ getData() {
             CERT_FILE="/etc/trojan-go/${DOMAIN}.pem"
             KEY_FILE="/etc/trojan-go/${DOMAIN}.key"
         else
-           exit 1
         fi
     else
         DOMAIN=`grep sni $CONFIG_FILE | cut -d\" -f4`
