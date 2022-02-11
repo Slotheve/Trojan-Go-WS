@@ -1,6 +1,5 @@
 #!/bin/bash
 # trojan-go一键安装脚本
-# Author: hijk<https://hijk.art>
 
 
 RED="\033[31m"      # Error message
@@ -123,7 +122,7 @@ statusText() {
 }
 
 getVersion() {
-    VERSION=`curl -fsSL ${V6_PROXY}https://api.github.com/repos/p4gefau1t/trojan-go/releases | grep tag_name | sed -E 's/.*"v(.*)".*/\1/'| head -n1`
+    VERSION=`curl -fsSL https://api.github.com/repos/p4gefau1t/trojan-go/releases | grep tag_name | sed -E 's/.*"v(.*)".*/\1/'| head -n1`
     if [[ ${VERSION:0:1} != "v" ]];then
         VERSION="v${VERSION}"
     fi
@@ -339,12 +338,6 @@ getData() {
     fi
     echo ""
     colorEcho $BLUE " 允许搜索引擎：$ALLOW_SPIDER"
-
-    echo ""
-    read -p " 是否安装BBR(默认安装)?[y/n]:" NEED_BBR
-    [[ -z "$NEED_BBR" ]] && NEED_BBR=y
-    [[ "$NEED_BBR" = "Y" ]] && NEED_BBR=y
-    colorEcho $BLUE " 安装BBR：$NEED_BBR"
 }
 
 installNginx() {
@@ -365,7 +358,7 @@ module_hotfixes=true' > /etc/yum.repos.d/nginx.repo
         fi
         $CMD_INSTALL nginx
         if [[ "$?" != "0" ]]; then
-            colorEcho $RED " Nginx安装失败，请到 https://hijk.art 反馈"
+            colorEcho $RED " Nginx安装失败"
             exit 1
         fi
         systemctl enable nginx
@@ -421,7 +414,7 @@ getCert() {
             systemctl start cron
             systemctl enable cron
         fi
-        curl -sL https://get.acme.sh | sh -s email=hijk.pw@protonmail.ch
+        curl -sL https://get.acme.sh | sh -s email=slothevem@gmail.com
         source ~/.bashrc
         ~/.acme.sh/acme.sh  --upgrade  --auto-upgrade
         ~/.acme.sh/acme.sh --set-default-ca --server letsencrypt
@@ -431,7 +424,7 @@ getCert() {
             ~/.acme.sh/acme.sh   --issue -d $DOMAIN --keylength ec-256 --pre-hook "nginx -s stop || { echo -n ''; }" --post-hook "nginx -c /www/server/nginx/conf/nginx.conf || { echo -n ''; }"  --standalone
         fi
         [[ -f ~/.acme.sh/${DOMAIN}_ecc/ca.cer ]] || {
-            colorEcho $RED " 获取证书失败，请复制上面的红色文字到 https://hijk.art 反馈"
+            colorEcho $RED " 获取证书失败"
             exit 1
         }
         CERT_FILE="/etc/trojan-go/${DOMAIN}.pem"
@@ -441,7 +434,7 @@ getCert() {
             --fullchain-file $CERT_FILE \
             --reloadcmd     "service nginx force-reload"
         [[ -f $CERT_FILE && -f $KEY_FILE ]] || {
-            colorEcho $RED " 获取证书失败，请到 https://hijk.art 反馈"
+            colorEcho $RED " 获取证书失败"
             exit 1
         }
     else
@@ -543,7 +536,7 @@ EOF
 
 downloadFile() {
     SUFFIX=`archAffix`
-    DOWNLOAD_URL="${V6_PROXY}https://github.com/p4gefau1t/trojan-go/releases/download/${VERSION}/trojan-go-linux-${SUFFIX}.zip"
+    DOWNLOAD_URL="https://github.com/p4gefau1t/trojan-go/releases/download/${VERSION}/trojan-go-linux-${SUFFIX}.zip"
     wget -O /tmp/${ZIP_FILE}.zip $DOWNLOAD_URL
     if [[ ! -f /tmp/${ZIP_FILE}.zip ]]; then
         echo -e "{$RED} trojan-go安装文件下载失败，请检查网络或重试${PLAIN}"
@@ -672,52 +665,6 @@ setFirewall() {
     fi
 }
 
-installBBR() {
-    if [[ "$NEED_BBR" != "y" ]]; then
-        INSTALL_BBR=false
-        return
-    fi
-    result=$(lsmod | grep bbr)
-    if [[ "$result" != "" ]]; then
-        echo " BBR模块已安装"
-        INSTALL_BBR=false
-        return
-    fi
-    res=`hostnamectl | grep -i openvz`
-    if [[ "$res" != "" ]]; then
-        echo  " openvz机器，跳过安装"
-        INSTALL_BBR=false
-        return
-    fi
-    
-    echo "net.core.default_qdisc=fq" >> /etc/sysctl.conf
-    echo "net.ipv4.tcp_congestion_control=bbr" >> /etc/sysctl.conf
-    sysctl -p
-    result=$(lsmod | grep bbr)
-    if [[ "$result" != "" ]]; then
-        echo " BBR模块已启用"
-        INSTALL_BBR=false
-        return
-    fi
-
-    colorEcho $BLUE " 安装BBR模块..."
-    if [[ "$PMT" = "yum" ]]; then
-        if [[ "$V6_PROXY" = "" ]]; then
-            rpm --import https://www.elrepo.org/RPM-GPG-KEY-elrepo.org
-            rpm -Uvh http://www.elrepo.org/elrepo-release-7.0-4.el7.elrepo.noarch.rpm
-            $CMD_INSTALL --enablerepo=elrepo-kernel kernel-ml
-            $CMD_REMOVE kernel-3.*
-            grub2-set-default 0
-            echo "tcp_bbr" >> /etc/modules-load.d/modules.conf
-            INSTALL_BBR=true
-        fi
-    else
-        $CMD_INSTALL --install-recommends linux-generic-hwe-16.04
-        grub-set-default 0
-        echo "tcp_bbr" >> /etc/modules-load.d/modules.conf
-        INSTALL_BBR=true
-    fi
-}
 
 install() {
     getData
@@ -748,23 +695,9 @@ install() {
     configTrojan
 
     setSelinux
-    installBBR
 
     start
     showInfo
-
-    bbrReboot
-}
-
-bbrReboot() {
-    if [[ "${INSTALL_BBR}" == "true" ]]; then
-        echo  
-        echo " 为使BBR模块生效，系统将在30秒后重启"
-        echo  
-        echo -e " 您可以按 ctrl + c 取消重启，稍后输入 ${RED}reboot${PLAIN} 重启系统"
-        sleep 30
-        reboot
-    fi
 }
 
 update() {
@@ -875,8 +808,6 @@ reconfig() {
     stop
     start
     showInfo
-
-    bbrReboot
 }
 
 
@@ -927,11 +858,9 @@ menu() {
     clear
     echo "#############################################################"
     echo -e "#                    ${RED}trojan-go一键安装脚本${PLAIN}                  #"
-    echo -e "# ${GREEN}作者${PLAIN}: 网络跳越(hijk)                                      #"
-    echo -e "# ${GREEN}网址${PLAIN}: https://hijk.art                                    #"
-    echo -e "# ${GREEN}论坛${PLAIN}: https://hijk.club                                   #"
-    echo -e "# ${GREEN}TG群${PLAIN}: https://t.me/hijkclub                               #"
-    echo -e "# ${GREEN}Youtube频道${PLAIN}: https://youtube.com/channel/UCYTB--VsObzepVJtc9yvUxQ #"
+    echo -e "# ${GREEN}作者${PLAIN}: Slotheve                                      #"
+    echo -e "# ${GREEN}TG号${PLAIN}: https://t.me/slotheve                               #"
+    echo -e "# ${GREEN}Github${PLAIN}: https://github.com/Slotheve                               #"
     echo "#############################################################"
     echo ""
 
