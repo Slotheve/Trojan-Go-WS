@@ -168,7 +168,7 @@ getData() {
             CERT_FILE="/etc/trojan-go/${DOMAIN}.pem"
             KEY_FILE="/etc/trojan-go/${DOMAIN}.key"
         else
-            resolve=`ping -c 2 ${DOMAIN} | head -2 | tail -1 | awk '{print $5}' | sed 's/[(:)]//g'`
+            resolve=`ping -c 2 ${DOMAIN}`
             res=`echo -n ${resolve} | grep ${IP}`
             if [[ -z "${res}" ]]; then
                 echo " ${DOMAIN} 解析结果：${resolve}"
