@@ -752,13 +752,13 @@ showInfo() {
     echo -e " ${BLUE}trojan-go配置文件: ${PLAIN} ${RED}${CONFIG_FILE}${PLAIN}"
     echo -e " ${BLUE}trojan-go配置信息：${PLAIN}"
     echo -e "   IP：${RED}$IP${PLAIN}"
-    echo -e "   伪装域名/host/SNI/peer名称：${RED}$domain${PLAIN}"
-    echo -e "   端口(port)：${RED}$port${PLAIN}"
-    echo -e "   密码(password)：${RED}$password${PLAIN}"
+    echo -e "   host/SNI/peer名称：${RED}$domain${PLAIN}"
+    echo -e "   port：${RED}$port${PLAIN}"
+    echo -e "   password：${RED}$password${PLAIN}"
     if [[ $ws = "true" ]]; then
         echo -e "   websocket：${RED}true${PLAIN}"
         wspath=`grep path $CONFIG_FILE | cut -d: -f2 | tr -d \",' '`
-        echo -e "   ws路径(ws path)：${RED}${wspath}${PLAIN}"
+        echo -e "   ws-path：${RED}${wspath}${PLAIN}"
     fi
     echo ""
 }
@@ -780,17 +780,17 @@ menu() {
 
     echo -e "  ${GREEN}1.${PLAIN}  安装trojan-go"
     echo -e "  ${GREEN}2.${PLAIN}  安装trojan-go+WS"
-    echo -e "  ${GREEN}3.  ${RED}卸载trojan-go${PLAIN}"
+    echo -e "  ${GREEN}3.  ${RED}  卸载trojan-go${PLAIN}"
     echo " -------------"
     echo -e "  ${GREEN}4.${PLAIN}  启动trojan-go"
     echo -e "  ${GREEN}5.${PLAIN}  重启trojan-go"
     echo -e "  ${GREEN}6.${PLAIN}  停止trojan-go"
     echo " -------------"
     echo -e "  ${GREEN}7.${PLAIN}  查看trojan-go配置"
-    echo -e "  ${GREEN}8.  ${RED}修改trojan-go配置${PLAIN}"
-    echo -e "  ${GREEN}9.${PLAIN} 查看trojan-go日志"
+    echo -e "  ${GREEN}8.${RED}    修改trojan-go配置${PLAIN}"
+    echo -e "  ${GREEN}9.${PLAIN}  查看trojan-go日志"
     echo " -------------"
-    echo -e "  ${GREEN}0.${PLAIN} 退出"
+    echo -e "  ${GREEN}0.${PLAIN}  退出"
     echo 
     echo -n " 当前状态："
     statusText
