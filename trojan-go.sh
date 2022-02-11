@@ -1,3 +1,4 @@
+
 #!/bin/bash
 # trojan-go一键安装脚本
 
@@ -316,7 +317,6 @@ module_hotfixes=true' > /etc/yum.repos.d/nginx.repo
         fi
     fi
 }
-
 startNginx() {
     if [[ "$BT" = "false" ]]; then
         systemctl start nginx
@@ -324,7 +324,6 @@ startNginx() {
         nginx -c /www/server/nginx/conf/nginx.conf
     fi
 }
-
 stopNginx() {
     if [[ "$BT" = "false" ]]; then
         systemctl stop nginx
@@ -335,7 +334,6 @@ stopNginx() {
         fi
     fi
 }
-
 getCert() {
     mkdir -p /etc/trojan-go
     if [[ -z ${CERT_FILE+x} ]]; then
@@ -349,7 +347,6 @@ getCert() {
             echo ${res}
             exit 1
         fi
-
         $CMD_INSTALL socat openssl
         if [[ "$PMT" = "yum" ]]; then
             $CMD_INSTALL cronie
@@ -388,7 +385,6 @@ getCert() {
         cp ~/trojan-go.key /etc/trojan-go/${DOMAIN}.key
     fi
 }
-
 configNginx() {
     mkdir -p /usr/share/nginx/html
     if [[ "$ALLOW_SPIDER" = "n" ]]; then
@@ -413,32 +409,25 @@ user $user;
 worker_processes auto;
 error_log /var/log/nginx/error.log;
 pid /run/nginx.pid;
-
 # Load dynamic modules. See /usr/share/doc/nginx/README.dynamic.
 include /usr/share/nginx/modules/*.conf;
-
 events {
     worker_connections 1024;
 }
-
 http {
     log_format  main  '\$remote_addr - \$remote_user [\$time_local] "\$request" '
                       '\$status \$body_bytes_sent "\$http_referer" '
                       '"\$http_user_agent" "\$http_x_forwarded_for"';
-
     access_log  /var/log/nginx/access.log  main;
     server_tokens off;
-
     sendfile            on;
     tcp_nopush          on;
     tcp_nodelay         on;
     keepalive_timeout   65;
     types_hash_max_size 2048;
     gzip                on;
-
     include             /etc/nginx/mime.types;
     default_type        application/octet-stream;
-
     # Load modular configuration files from the /etc/nginx/conf.d directory.
     # See http://nginx.org/en/docs/ngx_core_module.html#include
     # for more information.
@@ -446,7 +435,6 @@ http {
 }
 EOF
     fi
-
     mkdir -p $NGINX_CONF_PATH
     if [[ "$PROXY_URL" = "" ]]; then
         cat > $NGINX_CONF_PATH${DOMAIN}.conf<<-EOF
@@ -454,7 +442,6 @@ server {
     listen 80;
     server_name ${DOMAIN};
     root /usr/share/nginx/html;
-
     $ROBOT_CONFIG
 }
 EOF
@@ -477,7 +464,6 @@ server {
 EOF
     fi
 }
-
 installTrojan() {
     rm -rf /tmp/${ZIP_FILE}
     unzip /tmp/${ZIP_FILE}.zip  -d /tmp/${ZIP_FILE}
@@ -485,13 +471,10 @@ installTrojan() {
     cp /tmp/${ZIP_FILE}/example/trojan-go.service /etc/systemd/system/
     sed -i '/User=nobody/d' /etc/systemd/system/trojan-go.service
     systemctl daemon-reload
-
     systemctl enable trojan-go
     rm -rf /tmp/${ZIP_FILE}
-
     colorEcho $BLUE " trojan-go安装成功！"
 }
-
 configTrojan() {
     mkdir -p /etc/trojan-go
     cat > $CONFIG_FILE <<-EOF
@@ -543,14 +526,12 @@ configTrojan() {
 }
 EOF
 }
-
 setSelinux() {
     if [[ -s /etc/selinux/config ]] && grep 'SELINUX=enforcing' /etc/selinux/config; then
         sed -i 's/SELINUX=enforcing/SELINUX=permissive/g' /etc/selinux/config
         setenforce 0
     fi
 }
-
 setFirewall() {
     res=`which firewall-cmd 2>/dev/null`
     if [[ $? -eq 0 ]]; then
@@ -598,10 +579,8 @@ setFirewall() {
         fi
     fi
 }
-
 install() {
     getData
-
     $PMT clean all
     [[ "$PMT" = "apt" ]] && $PMT update
     #echo $CMD_UPGRADE | bash
@@ -615,31 +594,25 @@ install() {
         echo -e " ${RED}unzip安装失败，请检查网络${PLAIN}"
         exit 1
     fi
-
     installNginx
     setFirewall
     getCert
     configNginx
-
     echo " 安装trojan-go..."
     getVersion
     downloadFile
     installTrojan
     configTrojan
-
     setSelinux
-
     start
     showInfo
 }
-
 uninstall() {
     res=`status`
     if [[ $res -lt 2 ]]; then
         echo -e " ${RED}trojan-go未安装，请先安装！${PLAIN}"
         return
     fi
-
     echo ""
     read -p " 确定卸载trojan-go？[y/n]：" answer
     if [[ "${answer,,}" = "y" ]]; then
@@ -650,7 +623,6 @@ uninstall() {
         rm -rf /usr/bin/trojan-go
         systemctl disable trojan-go
         rm -rf /etc/systemd/system/trojan-go.service
-
         if [[ "$BT" = "false" ]]; then
             systemctl disable nginx
             $CMD_REMOVE nginx
@@ -662,20 +634,17 @@ uninstall() {
                 mv /etc/nginx/nginx.conf.bak /etc/nginx/nginx.conf
             fi
         fi
-
         rm -rf $NGINX_CONF_PATH${domain}.conf
         ~/.acme.sh/acme.sh --uninstall
         echo -e " ${GREEN}trojan-go卸载成功${PLAIN}"
     fi
 }
-
 start() {
     res=`status`
     if [[ $res -lt 2 ]]; then
         echo -e "${RED}trojan-go未安装，请先安装！${PLAIN}"
         return
     fi
-
     stopNginx
     startNginx
     systemctl restart trojan-go
@@ -688,32 +657,26 @@ start() {
         colorEcho $BLUE " trojan-go启动成功"
     fi
 }
-
 stop() {
     stopNginx
     systemctl stop trojan-go
     colorEcho $BLUE " trojan-go停止成功"
 }
-
-
 restart() {
     res=`status`
     if [[ $res -lt 2 ]]; then
         echo -e " ${RED}trojan-go未安装，请先安装！${PLAIN}"
         return
     fi
-
     stop
     start
 }
-
 reconfig() {
     res=`status`
     if [[ $res -lt 2 ]]; then
         echo -e " ${RED}trojan-go未安装，请先安装！${PLAIN}"
         return
     fi
-
     line1=`grep -n 'websocket' $CONFIG_FILE  | head -n1 | cut -d: -f1`
     line11=`expr $line1 + 1`
     WS=`sed -n "${line11}p" $CONFIG_FILE | cut -d: -f2 | tr -d \",' '`
@@ -725,18 +688,14 @@ reconfig() {
     stop
     start
     showInfo
-
     bbrReboot
 }
-
-
 showInfo() {
     res=`status`
     if [[ $res -lt 2 ]]; then
         echo -e " ${RED}trojan-go未安装，请先安装！${PLAIN}"
         return
     fi
-
     domain=`grep sni $CONFIG_FILE | cut -d\" -f4`
     port=`grep local_port $CONFIG_FILE | cut -d: -f2 | tr -d \",' '`
     line1=`grep -n 'password' $CONFIG_FILE  | head -n1 | cut -d: -f1`
@@ -752,27 +711,24 @@ showInfo() {
     echo -e " ${BLUE}trojan-go配置文件: ${PLAIN} ${RED}${CONFIG_FILE}${PLAIN}"
     echo -e " ${BLUE}trojan-go配置信息：${PLAIN}"
     echo -e "   IP：${RED}$IP${PLAIN}"
-    echo -e "   host/SNI/peer名称：${RED}$domain${PLAIN}"
-    echo -e "   port：${RED}$port${PLAIN}"
-    echo -e "   password：${RED}$password${PLAIN}"
+    echo -e "   伪装域名/主机名(host)/SNI/peer名称：${RED}$domain${PLAIN}"
+    echo -e "   端口(port)：${RED}$port${PLAIN}"
+    echo -e "   密码(password)：${RED}$password${PLAIN}"
     if [[ $ws = "true" ]]; then
         echo -e "   websocket：${RED}true${PLAIN}"
         wspath=`grep path $CONFIG_FILE | cut -d: -f2 | tr -d \",' '`
-        echo -e "   ws-path：${RED}${wspath}${PLAIN}"
+        echo -e "   ws路径(ws path)：${RED}${wspath}${PLAIN}"
     fi
     echo ""
 }
-
 showLog() {
     res=`status`
     if [[ $res -lt 2 ]]; then
         echo -e "${RED}trojan-go未安装，请先安装！${PLAIN}"
         return
     fi
-
     journalctl -xen -u trojan-go --no-pager
 }
-
 menu() {
     clear
     echo "#############################################################"
@@ -780,17 +736,17 @@ menu() {
 
     echo -e "  ${GREEN}1.${PLAIN}  安装trojan-go"
     echo -e "  ${GREEN}2.${PLAIN}  安装trojan-go+WS"
-    echo -e "  ${GREEN}3.  ${RED}  卸载trojan-go${PLAIN}"
+    echo -e "  ${GREEN}3.  ${RED}卸载trojan-go${PLAIN}"
     echo " -------------"
     echo -e "  ${GREEN}4.${PLAIN}  启动trojan-go"
     echo -e "  ${GREEN}5.${PLAIN}  重启trojan-go"
     echo -e "  ${GREEN}6.${PLAIN}  停止trojan-go"
     echo " -------------"
     echo -e "  ${GREEN}7.${PLAIN}  查看trojan-go配置"
-    echo -e "  ${GREEN}8.${RED}    修改trojan-go配置${PLAIN}"
-    echo -e "  ${GREEN}9.${PLAIN}  查看trojan-go日志"
+    echo -e "  ${GREEN}8.  ${RED}修改trojan-go配置${PLAIN}"
+    echo -e "  ${GREEN}9.${PLAIN} 查看trojan-go日志"
     echo " -------------"
-    echo -e "  ${GREEN}0.${PLAIN}  退出"
+    echo -e "  ${GREEN}0.${PLAIN} 退出"
     echo 
     echo -n " 当前状态："
     statusText
@@ -841,11 +797,11 @@ checkSystem
 action=$1
 [[ -z $1 ]] && action=menu
 case "$action" in
-    menu|uninstall|start|restart|stop|showInfo|showLog
+    menu|uninstall|start|restart|stop|showInfo|showLog)
         ${action}
         ;;
     *)
-        echo " 参数错误 "
+        echo " 参数错误"
         echo " 用法: `basename $0` [menu|uninstall|start|restart|stop|showInfo|showLog]"
         ;;
 esac
