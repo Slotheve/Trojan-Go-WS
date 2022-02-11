@@ -692,12 +692,9 @@ install() {
     configTrojan
 
     setSelinux
-    installBBR
 
     start
     showInfo
-
-    bbrReboot
 }
 
 update() {
