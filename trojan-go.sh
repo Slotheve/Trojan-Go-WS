@@ -858,6 +858,9 @@ showLog() {
 
 menu() {
     clear
+    echo "#############################################################"
+    echo ""
+
     echo -e "  ${GREEN}1.${PLAIN}  安装trojan-go"
     echo -e "  ${GREEN}2.${PLAIN}  安装trojan-go+WS"
     echo -e "  ${GREEN}3.${PLAIN}  更新trojan-go"
