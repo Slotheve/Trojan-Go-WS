@@ -845,7 +845,7 @@ case "$action" in
         ${action}
         ;;
     *)
-        echo " 参数错误"
-        echo " 用法: `basename $0` [menu|uninstall|start|restart|stop|showInfo|showLog]"
+        echo " 参数错误 "
+        echo " 用法: `basename $0` [menu|uninstall|start|restart|stop|showInfo|showLog] "
         ;;
 esac
