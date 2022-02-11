@@ -248,7 +248,6 @@ getData() {
         1)
             PROXY_URL=""
             ;;
-
         2)
             PROXY_URL="https://bing.ioliu.cn"
             ;;
@@ -367,7 +366,7 @@ getCert() {
             ~/.acme.sh/acme.sh   --issue -d $DOMAIN --keylength ec-256 --pre-hook "nginx -s stop || { echo -n ''; }" --post-hook "nginx -c /www/server/nginx/conf/nginx.conf || { echo -n ''; }"  --standalone
         fi
         [[ -f ~/.acme.sh/${DOMAIN}_ecc/ca.cer ]] || {
-            colorEcho $RED " 获取证书失败
+            colorEcho $RED " 获取证书失败"
             exit 1
         }
         CERT_FILE="/etc/trojan-go/${DOMAIN}.pem"
@@ -377,7 +376,7 @@ getCert() {
             --fullchain-file $CERT_FILE \
             --reloadcmd     "service nginx force-reload"
         [[ -f $CERT_FILE && -f $KEY_FILE ]] || {
-            colorEcho $RED " 获取证书失败
+            colorEcho $RED " 获取证书失败"
             exit 1
         }
     else
