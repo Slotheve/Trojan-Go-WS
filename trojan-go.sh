@@ -10,13 +10,6 @@ PLAIN='\033[0m'
 
 OS=`hostnamectl | grep -i system | cut -d: -f2`
 
-V6_PROXY=""
-IP=`curl -sL -4 ip.sb`
-if [[ "$?" != "0" ]]; then
-    IP=`curl -sL -6 ip.sb`
-    V6_PROXY="https://gh.hijk.art/"
-fi
-
 BT="false"
 NGINX_CONF_PATH="/etc/nginx/conf.d/"
 
@@ -26,26 +19,6 @@ if [[ "$res" != "" ]]; then
     NGINX_CONF_PATH="/www/server/panel/vhost/nginx/"
 fi
 
-# 以下网站是随机从Google上找到的无广告小说网站，不喜欢请改成其他网址，以http或https开头
-# 搭建好后无法打开伪装域名，可能是反代小说网站挂了，请在网站留言，或者Github发issue，以便替换新的网站
-SITES=(
-http://www.zhuizishu.com/
-http://xs.56dyc.com/
-#http://www.xiaoshuosk.com/
-#https://www.quledu.net/
-http://www.ddxsku.com/
-http://www.biqu6.com/
-https://www.wenshulou.cc/
-#http://www.auutea.com/
-http://www.55shuba.com/
-http://www.39shubao.com/
-https://www.23xsw.cc/
-#https://www.huanbige.com/
-https://www.jueshitangmen.info/
-https://www.zhetian.org/
-http://www.bequgexs.com/
-http://www.tjwl.com/
-)
 
 ZIP_FILE="trojan-go"
 CONFIG_FILE="/etc/trojan-go/config.json"
@@ -121,13 +94,6 @@ statusText() {
     esac
 }
 
-getVersion() {
-    VERSION=`curl -fsSL ${V6_PROXY}https://api.github.com/repos/p4gefau1t/trojan-go/releases | grep tag_name | sed -E 's/.*"v(.*)".*/\1/'| head -n1`
-    if [[ ${VERSION:0:1} != "v" ]];then
-        VERSION="v${VERSION}"
-    fi
-}
-
 archAffix() {
     case "${1:-"$(uname -m)"}" in
         i686|i386)
@@ -201,7 +167,7 @@ getData() {
             CERT_FILE="/etc/trojan-go/${DOMAIN}.pem"
             KEY_FILE="/etc/trojan-go/${DOMAIN}.key"
         else
-            resolve=`curl -sL https://hijk.art/hostip.php?d=${DOMAIN}`
+            resolve=`ping -c 2 ${DOMAIN} | head -2 | tail -1 | awk '{print $5}' | sed 's/[(:)]//g'`
             res=`echo -n ${resolve} | grep ${IP}`
             if [[ -z "${res}" ]]; then
                 echo " ${DOMAIN} 解析结果：${resolve}"
@@ -271,41 +237,21 @@ getData() {
     echo ""
     colorEcho $BLUE " 请选择伪装站类型:"
     echo "   1) 静态网站(位于/usr/share/nginx/html)"
-    echo "   2) 小说站(随机选择)"
-    echo "   3) 美女站(https://imeizi.me)"
-    echo "   4) 高清壁纸站(https://bing.imeizi.me)"
-    echo "   5) 自定义反代站点(需以http或者https开头)"
+    echo "   2) 高清壁纸站(https://bing.ioliu.cn)"
+    echo "   3) 自定义反代站点(需以http或者https开头)"
     read -p "  请选择伪装网站类型[默认:高清壁纸站]" answer
     if [[ -z "$answer" ]]; then
-        PROXY_URL="https://bing.imeizi.me"
+        PROXY_URL="https://bing.ioliu.cn"
     else
         case $answer in
         1)
             PROXY_URL=""
             ;;
+
         2)
-            len=${#SITES[@]}
-            ((len--))
-            while true
-            do
-                index=`shuf -i0-${len} -n1`
-                PROXY_URL=${SITES[$index]}
-                host=`echo ${PROXY_URL} | cut -d/ -f3`
-                ip=`curl -sL https://hijk.art/hostip.php?d=${host}`
-                res=`echo -n ${ip} | grep ${host}`
-                if [[ "${res}" = "" ]]; then
-                    echo "$ip $host" >> /etc/hosts
-                    break
-                fi
-            done
+            PROXY_URL="https://bing.ioliu.cn"
             ;;
-        3)
-            PROXY_URL="https://imeizi.me"
-            ;;
-        4)
-            PROXY_URL="https://bing.imeizi.me"
-            ;;
-        5)
+       3)
             read -p " 请输入反代站点(以http或者https开头)：" PROXY_URL
             if [[ -z "$PROXY_URL" ]]; then
                 colorEcho $RED " 请输入反代网站！"
@@ -358,7 +304,7 @@ module_hotfixes=true' > /etc/yum.repos.d/nginx.repo
         fi
         $CMD_INSTALL nginx
         if [[ "$?" != "0" ]]; then
-            colorEcho $RED " Nginx安装失败，请到 https://hijk.art 反馈"
+            colorEcho $RED " Nginx安装失败
             exit 1
         fi
         systemctl enable nginx
@@ -414,7 +360,7 @@ getCert() {
             systemctl start cron
             systemctl enable cron
         fi
-        curl -sL https://get.acme.sh | sh -s email=hijk.pw@protonmail.ch
+        curl -sL https://get.acme.sh | sh -s email=slothevem@gmail.com
         source ~/.bashrc
         ~/.acme.sh/acme.sh  --upgrade  --auto-upgrade
         ~/.acme.sh/acme.sh --set-default-ca --server letsencrypt
@@ -424,7 +370,7 @@ getCert() {
             ~/.acme.sh/acme.sh   --issue -d $DOMAIN --keylength ec-256 --pre-hook "nginx -s stop || { echo -n ''; }" --post-hook "nginx -c /www/server/nginx/conf/nginx.conf || { echo -n ''; }"  --standalone
         fi
         [[ -f ~/.acme.sh/${DOMAIN}_ecc/ca.cer ]] || {
-            colorEcho $RED " 获取证书失败，请复制上面的红色文字到 https://hijk.art 反馈"
+            colorEcho $RED " 获取证书失败
             exit 1
         }
         CERT_FILE="/etc/trojan-go/${DOMAIN}.pem"
@@ -434,7 +380,7 @@ getCert() {
             --fullchain-file $CERT_FILE \
             --reloadcmd     "service nginx force-reload"
         [[ -f $CERT_FILE && -f $KEY_FILE ]] || {
-            colorEcho $RED " 获取证书失败，请到 https://hijk.art 反馈"
+            colorEcho $RED " 获取证书失败
             exit 1
         }
     else
@@ -529,16 +475,6 @@ server {
     $ROBOT_CONFIG
 }
 EOF
-    fi
-}
-
-downloadFile() {
-    SUFFIX=`archAffix`
-    DOWNLOAD_URL="${V6_PROXY}https://github.com/p4gefau1t/trojan-go/releases/download/${VERSION}/trojan-go-linux-${SUFFIX}.zip"
-    wget -O /tmp/${ZIP_FILE}.zip $DOWNLOAD_URL
-    if [[ ! -f /tmp/${ZIP_FILE}.zip ]]; then
-        echo -e "{$RED} trojan-go安装文件下载失败，请检查网络或重试${PLAIN}"
-        exit 1
     fi
 }
 
@@ -697,22 +633,6 @@ install() {
     showInfo
 }
 
-update() {
-    res=`status`
-    if [[ $res -lt 2 ]]; then
-        echo -e " ${RED}trojan-go未安装，请先安装！${PLAIN}"
-        return
-    fi
-
-    echo " 安装最新版trojan-go"
-    getVersion
-    downloadFile
-    installTrojan
-
-    stop
-    start
-}
-
 uninstall() {
     res=`status`
     if [[ $res -lt 2 ]]; then
@@ -860,16 +780,15 @@ menu() {
 
     echo -e "  ${GREEN}1.${PLAIN}  安装trojan-go"
     echo -e "  ${GREEN}2.${PLAIN}  安装trojan-go+WS"
-    echo -e "  ${GREEN}3.${PLAIN}  更新trojan-go"
-    echo -e "  ${GREEN}4.  ${RED}卸载trojan-go${PLAIN}"
+    echo -e "  ${GREEN}3.  ${RED}卸载trojan-go${PLAIN}"
     echo " -------------"
-    echo -e "  ${GREEN}5.${PLAIN}  启动trojan-go"
-    echo -e "  ${GREEN}6.${PLAIN}  重启trojan-go"
-    echo -e "  ${GREEN}7.${PLAIN}  停止trojan-go"
+    echo -e "  ${GREEN}4.${PLAIN}  启动trojan-go"
+    echo -e "  ${GREEN}5.${PLAIN}  重启trojan-go"
+    echo -e "  ${GREEN}6.${PLAIN}  停止trojan-go"
     echo " -------------"
-    echo -e "  ${GREEN}8.${PLAIN}  查看trojan-go配置"
-    echo -e "  ${GREEN}9.  ${RED}修改trojan-go配置${PLAIN}"
-    echo -e "  ${GREEN}10.${PLAIN} 查看trojan-go日志"
+    echo -e "  ${GREEN}7.${PLAIN}  查看trojan-go配置"
+    echo -e "  ${GREEN}8.  ${RED}修改trojan-go配置${PLAIN}"
+    echo -e "  ${GREEN}9.${PLAIN} 查看trojan-go日志"
     echo " -------------"
     echo -e "  ${GREEN}0.${PLAIN} 退出"
     echo 
@@ -890,27 +809,24 @@ menu() {
             install
             ;;
         3)
-            update
-            ;;
-        4)
             uninstall
             ;;
-        5)
+        4)
             start
             ;;
-        6)
+        5)
             restart
             ;;
-        7)
+        6)
             stop
             ;;
-        8)
+        7)
             showInfo
             ;;
-        9)
+        8)
             reconfig
             ;;
-        10)
+        9)
             showLog
             ;;
         *)
@@ -925,11 +841,11 @@ checkSystem
 action=$1
 [[ -z $1 ]] && action=menu
 case "$action" in
-    menu|update|uninstall|start|restart|stop|showInfo|showLog)
+    menu|uninstall|start|restart|stop|showInfo|showLog)
         ${action}
         ;;
     *)
         echo " 参数错误"
-        echo " 用法: `basename $0` [menu|update|uninstall|start|restart|stop|showInfo|showLog]"
+        echo " 用法: `basename $0` [menu|uninstall|start|restart|stop|showInfo|showLog]"
         ;;
 esac
