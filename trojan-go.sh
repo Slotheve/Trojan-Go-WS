@@ -710,13 +710,13 @@ showInfo() {
     echo -e " ${BLUE}trojan-go配置文件: ${PLAIN} ${RED}${CONFIG_FILE}${PLAIN}"
     echo -e " ${BLUE}trojan-go配置信息：${PLAIN}"
     echo -e "   IP：${RED}$IP${PLAIN}"
-    echo -e "   伪装域名/主机名(host)/SNI/peer名称：${RED}$domain${PLAIN}"
-    echo -e "   端口(port)：${RED}$port${PLAIN}"
-    echo -e "   密码(password)：${RED}$password${PLAIN}"
+    echo -e "   伪装域名/主机名\(host\)/SNI/peer名称：${RED}$domain${PLAIN}"
+    echo -e "   端口\(port\)：${RED}$port${PLAIN}"
+    echo -e "   密码\(password\)：${RED}$password${PLAIN}"
     if [[ $ws = "true" ]]; then
         echo -e "   websocket：${RED}true${PLAIN}"
         wspath=`grep path $CONFIG_FILE | cut -d: -f2 | tr -d \",' '`
-        echo -e "   ws路径(ws path)：${RED}${wspath}${PLAIN}"
+        echo -e "   ws路径\(ws path\)：${RED}${wspath}${PLAIN}"
     fi
     echo ""
 }
