@@ -752,7 +752,7 @@ showInfo() {
     echo -e " ${BLUE}trojan-go配置文件: ${PLAIN} ${RED}${CONFIG_FILE}${PLAIN}"
     echo -e " ${BLUE}trojan-go配置信息：${PLAIN}"
     echo -e "   IP：${RED}$IP${PLAIN}"
-    echo -e "   伪装域名/主机名(host)/SNI/peer名称：${RED}$domain${PLAIN}"
+    echo -e "   伪装域名/host/SNI/peer名称：${RED}$domain${PLAIN}"
     echo -e "   端口(port)：${RED}$port${PLAIN}"
     echo -e "   密码(password)：${RED}$password${PLAIN}"
     if [[ $ws = "true" ]]; then
