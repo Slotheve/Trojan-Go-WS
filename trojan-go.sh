@@ -1,6 +1,5 @@
 #!/bin/bash
 # trojan-go一键安装脚本
-# Author: hijk<https://hijk.art>
 
 
 RED="\033[31m"      # Error message
@@ -339,12 +338,6 @@ getData() {
     fi
     echo ""
     colorEcho $BLUE " 允许搜索引擎：$ALLOW_SPIDER"
-
-    echo ""
-    read -p " 是否安装BBR(默认安装)?[y/n]:" NEED_BBR
-    [[ -z "$NEED_BBR" ]] && NEED_BBR=y
-    [[ "$NEED_BBR" = "Y" ]] && NEED_BBR=y
-    colorEcho $BLUE " 安装BBR：$NEED_BBR"
 }
 
 installNginx() {
@@ -513,7 +506,6 @@ EOF
         cat > $NGINX_CONF_PATH${DOMAIN}.conf<<-EOF
 server {
     listen 80;
-    listen [::]:80;
     server_name ${DOMAIN};
     root /usr/share/nginx/html;
 
@@ -524,7 +516,6 @@ EOF
         cat > $NGINX_CONF_PATH${DOMAIN}.conf<<-EOF
 server {
     listen 80;
-    listen [::]:80;
     server_name ${DOMAIN};
     root /usr/share/nginx/html;
     location / {
@@ -672,53 +663,6 @@ setFirewall() {
     fi
 }
 
-installBBR() {
-    if [[ "$NEED_BBR" != "y" ]]; then
-        INSTALL_BBR=false
-        return
-    fi
-    result=$(lsmod | grep bbr)
-    if [[ "$result" != "" ]]; then
-        echo " BBR模块已安装"
-        INSTALL_BBR=false
-        return
-    fi
-    res=`hostnamectl | grep -i openvz`
-    if [[ "$res" != "" ]]; then
-        echo  " openvz机器，跳过安装"
-        INSTALL_BBR=false
-        return
-    fi
-    
-    echo "net.core.default_qdisc=fq" >> /etc/sysctl.conf
-    echo "net.ipv4.tcp_congestion_control=bbr" >> /etc/sysctl.conf
-    sysctl -p
-    result=$(lsmod | grep bbr)
-    if [[ "$result" != "" ]]; then
-        echo " BBR模块已启用"
-        INSTALL_BBR=false
-        return
-    fi
-
-    colorEcho $BLUE " 安装BBR模块..."
-    if [[ "$PMT" = "yum" ]]; then
-        if [[ "$V6_PROXY" = "" ]]; then
-            rpm --import https://www.elrepo.org/RPM-GPG-KEY-elrepo.org
-            rpm -Uvh http://www.elrepo.org/elrepo-release-7.0-4.el7.elrepo.noarch.rpm
-            $CMD_INSTALL --enablerepo=elrepo-kernel kernel-ml
-            $CMD_REMOVE kernel-3.*
-            grub2-set-default 0
-            echo "tcp_bbr" >> /etc/modules-load.d/modules.conf
-            INSTALL_BBR=true
-        fi
-    else
-        $CMD_INSTALL --install-recommends linux-generic-hwe-16.04
-        grub-set-default 0
-        echo "tcp_bbr" >> /etc/modules-load.d/modules.conf
-        INSTALL_BBR=true
-    fi
-}
-
 install() {
     getData
 
@@ -754,17 +698,6 @@ install() {
     showInfo
 
     bbrReboot
-}
-
-bbrReboot() {
-    if [[ "${INSTALL_BBR}" == "true" ]]; then
-        echo  
-        echo " 为使BBR模块生效，系统将在30秒后重启"
-        echo  
-        echo -e " 您可以按 ctrl + c 取消重启，稍后输入 ${RED}reboot${PLAIN} 重启系统"
-        sleep 30
-        reboot
-    fi
 }
 
 update() {
@@ -925,16 +858,6 @@ showLog() {
 
 menu() {
     clear
-    echo "#############################################################"
-    echo -e "#                    ${RED}trojan-go一键安装脚本${PLAIN}                  #"
-    echo -e "# ${GREEN}作者${PLAIN}: 网络跳越(hijk)                                      #"
-    echo -e "# ${GREEN}网址${PLAIN}: https://hijk.art                                    #"
-    echo -e "# ${GREEN}论坛${PLAIN}: https://hijk.club                                   #"
-    echo -e "# ${GREEN}TG群${PLAIN}: https://t.me/hijkclub                               #"
-    echo -e "# ${GREEN}Youtube频道${PLAIN}: https://youtube.com/channel/UCYTB--VsObzepVJtc9yvUxQ #"
-    echo "#############################################################"
-    echo ""
-
     echo -e "  ${GREEN}1.${PLAIN}  安装trojan-go"
     echo -e "  ${GREEN}2.${PLAIN}  安装trojan-go+WS"
     echo -e "  ${GREEN}3.${PLAIN}  更新trojan-go"
