@@ -174,13 +174,7 @@ getData() {
             CERT_FILE="/etc/trojan-go/${DOMAIN}.pem"
             KEY_FILE="/etc/trojan-go/${DOMAIN}.key"
         else
-            resolve=`ping -c 2 ${DOMAIN}`
-            res=`echo -n ${resolve} | grep ${IP}`
-            if [[ -z "${res}" ]]; then
-                echo " ${DOMAIN} 解析结果：${resolve}"
-                echo -e " ${RED}伪装域名未解析到当前服务器IP(${IP})!${PLAIN}"
-                exit 1
-            fi
+           exit 1
         fi
     else
         DOMAIN=`grep sni $CONFIG_FILE | cut -d\" -f4`
