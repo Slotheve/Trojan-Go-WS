@@ -174,8 +174,9 @@ getData() {
             CERT_FILE="/etc/trojan-go/${DOMAIN}.pem"
             KEY_FILE="/etc/trojan-go/${DOMAIN}.key"
         else
+	    apt install dnsutils -y
             resolve=`nslookup ${DOMAIN} | grep Address | cut -d " " -f 2 | grep -v Address`
-			res=`curl -s ipv4.ip.sb`
+	    res=`curl -s ipv4.ip.sb`
             if [[ ${resolve} != ${res} ]]; then
                 colorEcho ${BLUE}  "${DOMAIN} 解析结果：${resolve}"
                 colorEcho ${RED}  " 域名未解析到当前服务器IP(${res})!"
