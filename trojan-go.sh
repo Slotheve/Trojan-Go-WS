@@ -158,6 +158,7 @@ getData() {
         echo ""
         while true
         do
+	    apt install dnsutils -y
             read -p " 请输入伪装域名：" DOMAIN
             if [[ -z "${DOMAIN}" ]]; then
                 echo -e " ${RED}伪装域名输入错误，请重新输入！${PLAIN}"
@@ -174,7 +175,6 @@ getData() {
             CERT_FILE="/etc/trojan-go/${DOMAIN}.pem"
             KEY_FILE="/etc/trojan-go/${DOMAIN}.key"
         else
-	    apt install dnsutils -y
             resolve=`nslookup ${DOMAIN} | grep Address | cut -d " " -f 2 | grep -v Address`
 	    res=`curl -s ipv4.ip.sb`
             if [[ ${resolve} != ${res} ]]; then
