@@ -60,7 +60,9 @@ checkSystem() {
     fi
 }
 
-     $CMD_INSTALL dnsutils
+nslookup() {
+    $CMD_INSTALL dnsutils
+    }
 
 status() {
     trojan_cmd="$(command -v trojan-go)"
