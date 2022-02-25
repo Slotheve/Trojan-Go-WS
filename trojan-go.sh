@@ -53,16 +53,14 @@ checkSystem() {
         CMD_REMOVE="yum remove -y "
         CMD_UPGRADE="yum update -y"
     fi
+    $CMD_UPGRADE
+    $CMD_INSTALL dnsutils
     res=`which systemctl 2>/dev/null`
     if [[ "$?" != "0" ]]; then
         echo -e " ${RED}系统版本过低，请升级到最新版本${PLAIN}"
         exit 1
     fi
 }
-
-nslookup() {
-    $CMD_INSTALL dnsutils
-    }
 
 status() {
     trojan_cmd="$(command -v trojan-go)"
