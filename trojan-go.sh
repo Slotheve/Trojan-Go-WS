@@ -44,9 +44,9 @@ checkSystem() {
             exit 1
         fi
         PMT="apt"
-        CMD_INSTALL="apt install -y "
-        CMD_REMOVE="apt remove -y "
-        CMD_UPGRADE="apt update"
+        CMD_INSTALL="apt-get install -y "
+        CMD_REMOVE="apt-get remove -y "
+        CMD_UPGRADE="apt-get update"
     else
         PMT="yum"
         CMD_INSTALL="yum install -y "
