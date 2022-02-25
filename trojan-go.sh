@@ -60,6 +60,8 @@ checkSystem() {
     fi
 }
 
+     $CMD_INSTALL dnsutils
+
 status() {
     trojan_cmd="$(command -v trojan-go)"
     if [[ "$trojan_cmd" = "" ]]; then
@@ -158,7 +160,6 @@ getData() {
         echo ""
         while true
         do
-	    apt install dnsutils -y
             read -p " 请输入伪装域名：" DOMAIN
             if [[ -z "${DOMAIN}" ]]; then
                 echo -e " ${RED}伪装域名输入错误，请重新输入！${PLAIN}"
